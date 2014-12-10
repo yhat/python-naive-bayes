@@ -60,10 +60,9 @@ for f in find("sample-data"):
         word_counts[category][word] += count
 
 
-new_doc = open("Caddy.txt").read()
-new_doc = open("Allosaurus.txt").read()
-new_doc = open("Python.txt").read()
-new_doc = open("Yeti.txt").read()
+new_doc = open("examples/Allosaurus.txt").read()
+new_doc = open("examples/Python.txt").read()
+new_doc = open("examples/Yeti.txt").read()
 words = tokenize(new_doc)
 counts = count_words(words)
 
