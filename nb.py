@@ -1,11 +1,11 @@
 import re
 import string
-from prettytable import PrettyTable
 
 def remove_punctuation(s):
-    "see http://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-from-a-string-in-python"
-    table = string.maketrans("","")
-    return s.translate(table, string.punctuation)
+    """See: http://stackoverflow.com/a/266162
+    """
+    exclude = set(string.punctuation)
+    return ''.join(ch for ch in s if ch not in exclude)
 
 def tokenize(text):
     text = remove_punctuation(text)
@@ -37,7 +37,7 @@ priors = {
 docs = []
 for f in find("sample-data"):
     f = f.strip()
-    if f.endswith(".txt")==False:
+    if not f.endswith(".txt"):
         # skip non .txt files
         continue
     elif "cryptid" in f:
@@ -50,10 +50,10 @@ for f in find("sample-data"):
     text = open(f).read()
     words = tokenize(text)
     counts = count_words(words)
-    for word, count in counts.items():
+    for word, count in list(counts.items()):
         # if we haven't seen a word yet, let's add it to our dictionaries with a count of 0
         if word not in vocab:
-            vocab[word] = 0.0 # use 0.0 here so Python does "correct" math
+            vocab[word] = 0.0  # use 0.0 here so Python does "correct" math
         if word not in word_counts[category]:
             word_counts[category][word] = 0.0
         vocab[word] += count
@@ -73,9 +73,9 @@ prior_crypto = (priors["crypto"] / sum(priors.values()))
 
 log_prob_crypto = 0.0
 log_prob_dino = 0.0
-for w, cnt in counts.items():
+for w, cnt in list(counts.items()):
     # skip words that we haven't seen before, or words less than 3 letters long
-    if not w in vocab or len(w) <= 3:
+    if w not in vocab or len(w) <= 3:
         continue
 
     p_word = vocab[w] / sum(vocab.values())
@@ -87,5 +87,5 @@ for w, cnt in counts.items():
     if p_w_given_crypto > 0:
         log_prob_crypto += math.log(cnt * p_w_given_crypto / p_word)
 
-print "Score(dino)  :", math.exp(log_prob_dino + math.log(prior_dino))
-print "Score(crypto):", math.exp(log_prob_crypto + math.log(prior_crypto))
+print("Score(dino)  :", math.exp(log_prob_dino + math.log(prior_dino)))
+print("Score(crypto):", math.exp(log_prob_crypto + math.log(prior_crypto)))
