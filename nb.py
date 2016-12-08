@@ -59,33 +59,39 @@ for f in find("sample-data"):
         vocab[word] += count
         word_counts[category][word] += count
 
-
-new_doc = open("examples/Allosaurus.txt").read()
-new_doc = open("examples/Python.txt").read()
-new_doc = open("examples/Yeti.txt").read()
-words = tokenize(new_doc)
-counts = count_words(words)
-
-import math
-
-prior_dino = (priors["dino"] / sum(priors.values()))
-prior_crypto = (priors["crypto"] / sum(priors.values()))
-
-log_prob_crypto = 0.0
-log_prob_dino = 0.0
-for w, cnt in list(counts.items()):
-    # skip words that we haven't seen before, or words less than 3 letters long
-    if w not in vocab or len(w) <= 3:
+for f in find("examples"):
+    f = f.strip()
+    if not f.endswith(".txt"):
+        # skip non .txt files
         continue
+    new_doc = open(f).read()
+    words = tokenize(new_doc)
+    counts = count_words(words)
+    import math
 
-    p_word = vocab[w] / sum(vocab.values())
-    p_w_given_dino = word_counts["dino"].get(w, 0.0) / sum(word_counts["dino"].values())
-    p_w_given_crypto = word_counts["crypto"].get(w, 0.0) / sum(word_counts["crypto"].values())
+    prior_dino = (priors["dino"] / sum(priors.values()))
+    prior_crypto = (priors["crypto"] / sum(priors.values()))
 
-    if p_w_given_dino > 0:
-        log_prob_dino += math.log(cnt * p_w_given_dino / p_word)
-    if p_w_given_crypto > 0:
-        log_prob_crypto += math.log(cnt * p_w_given_crypto / p_word)
+    log_prob_crypto = 0.0
+    log_prob_dino = 0.0
+    for w, cnt in list(counts.items()):
+        # skip words that we haven't seen before, or words less than 3 letters long
+        if w not in vocab or len(w) <= 3:
+            continue
 
-print("Score(dino)  :", math.exp(log_prob_dino + math.log(prior_dino)))
-print("Score(crypto):", math.exp(log_prob_crypto + math.log(prior_crypto)))
+        p_word = vocab[w] / sum(vocab.values())
+        p_w_given_dino = word_counts["dino"].get(w, 0.0) / sum(word_counts["dino"].values())
+        p_w_given_crypto = word_counts["crypto"].get(w, 0.0) / sum(word_counts["crypto"].values())
+
+        if p_w_given_dino > 0:
+            log_prob_dino += math.log(cnt * p_w_given_dino / p_word)
+        if p_w_given_crypto > 0:
+            log_prob_crypto += math.log(cnt * p_w_given_crypto / p_word)
+        d_rate = prior_dino * p_w_given_dino / (p_w_given_dino * prior_dino + p_w_given_crypto * prior_crypto)
+        c_rate = prior_crypto * p_w_given_crypto / (p_w_given_dino * prior_dino + p_w_given_crypto * prior_crypto)
+        #print("Bayes Problisitic in two groups for ", w)
+        #print("In dino group: ",prior_dino * p_w_given_dino / (p_w_given_dino * prior_dino + p_w_given_crypto * prior_crypto))
+        #print("In crypto group: ",prior_crypto * p_w_given_crypto / (p_w_given_dino * prior_dino + p_w_given_crypto * prior_crypto))
+    print("File Name :", f)
+    print("Score(dino)  :", math.exp(log_prob_dino + math.log(prior_dino)))
+    print("Score(crypto):", math.exp(log_prob_crypto + math.log(prior_crypto)))
